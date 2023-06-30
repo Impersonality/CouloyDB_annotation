@@ -1,6 +1,7 @@
 package CouloyDB
 
 import (
+	"fmt"
 	"github.com/Kirov7/CouloyDB/public"
 	"github.com/Kirov7/CouloyDB/public/utils/bytes"
 	"github.com/Kirov7/CouloyDB/public/utils/wait"
@@ -251,4 +252,24 @@ func TestDB_Reboot(t *testing.T) {
 		}(id)
 	}
 	w.Wait()
+}
+
+func TestDB_Fold(t *testing.T) {
+	options := DefaultOptions()
+	options.SetSyncWrites(false)
+	couloyDB, err := NewCouloyDB(options)
+	defer destroyCouloyDB(couloyDB)
+	assert.Nil(t, err)
+	assert.NotNil(t, couloyDB)
+
+	for i := 0; i < 10; i++ {
+		err = couloyDB.Put(bytes.IntToBytes(i), bytes.RandomBytes(6))
+		assert.Nil(t, err)
+	}
+
+	err = couloyDB.Fold(func(key []byte, value []byte) bool {
+		fmt.Printf("key = %s, value = %s\n", key, value)
+		return true
+	})
+	assert.Nil(t, err)
 }
