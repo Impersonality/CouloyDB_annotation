@@ -16,8 +16,12 @@
 答：有必要，lock是对磁盘file读写是加锁，isMerging是对merge操作加锁，isMerging除了修改磁盘file，还有其他操作。
 
 6.couloyDB的事务是如何设计的
+答：couloyDB事务的功能主要是批量操作，失败就批量回滚。大致实现是，db维护了一个自增int txID，事务开启和结束会获取一个txID，可以通过txID来了解不同事务的
+ 执行时间顺序，如果事务有交叉，就判断是否对同一个key做了修改，如果是则回滚。
 
 7.couloyDB的集群是如何设计的
+答：没有做集群的处理，和redis db类似，多个db相互独立。不过couloyDB实现了一个tcp server，有点像gin的router，监听端口，每个请求就是一个context，handlers中
+除了核心函数，还加入中间件，for遍历执行handlers。不过tcp server 监听到conn后是长连接，也就是对于一次连接中多次数据请求，只执行一遍中间件。
 
 8.需要生成新的activeFile时（文件大小达到限制），会对old activeFile或者所有inactiveFiles进行merge操作么
 答：不会。
